@@ -1,18 +1,20 @@
 // ==UserScript==
-// @name         YouTube & Reddit Redirector/Blocker
-// @version      0.5
+// @name         Website Redirector/Blocker
+// @version      0.6
 // @description  Redirect YouTube non-video pages and close Reddit tabs if not a post.
 // @author       Areppa
 // @match        *://*.youtube.com/*
 // @match        *://*.reddit.com/*
+// @match        *://translate.google.com/*
 // @grant        none
 // ==/UserScript==
 
 (function() {
     'use strict';
 
-    // == Youtube Alternative url ==
+    // == Alternative url ==
     const youtubeRedirectBase = 'https://inv.nadeko.net';
+    const deeplBase = 'https://www.deepl.com';
 
     const url = new URL(window.location.href);
     const hostname = url.hostname;
@@ -34,5 +36,11 @@
         if (!isPost) {
             window.close(); // Close the tab if it's not a post
         }
+    }
+
+    // === Google Translate to DeepL logic ===
+    else if (hostname === 'translate.google.com') {
+        // Redirect to DeepL immediately
+        window.location.href = deeplBase;
     }
 })();
