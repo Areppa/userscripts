@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Website Redirector/Blocker
 // @version      0.6
-// @description  Redirect YouTube non-video pages and close Reddit tabs if not a post.
+// @description  Redirects or blocks specific websites
 // @author       Areppa
 // @match        *://*.youtube.com/*
 // @match        *://*.reddit.com/*
