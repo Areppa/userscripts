@@ -1,10 +1,11 @@
 // ==UserScript==
 // @name         Website Redirector/Blocker
-// @version      0.6
+// @version      0.7
 // @description  Redirects or blocks specific websites
 // @author       Areppa
 // @match        *://*.youtube.com/*
 // @match        *://*.reddit.com/*
+// @match        *://inv.nadeko.net/*
 // @match        *://translate.google.com/*
 // @grant        none
 // ==/UserScript==
@@ -42,5 +43,12 @@
     else if (hostname === 'translate.google.com') {
         // Redirect to DeepL immediately
         window.location.href = deeplBase;
+    }
+
+    // === Invidious popular to subs
+    if (hostname.includes('inv.nadeko.net')) {
+        if (pathname == '/feed/popular') {
+            window.location.href = youtubeRedirectBase;
+        }
     }
 })();
