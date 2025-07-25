@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Website Redirector/Blocker
-// @version      0.7
+// @version      0.7.1
 // @description  Redirects or blocks specific websites
 // @author       Areppa
 // @match        *://*.youtube.com/*
@@ -48,6 +48,9 @@
     // === Invidious popular to subs
     if (hostname.includes('inv.nadeko.net')) {
         if (pathname == '/feed/popular') {
+            window.location.href = youtubeRedirectBase;
+        }
+        if (pathname == '/feed/trending') {
             window.location.href = youtubeRedirectBase;
         }
     }
