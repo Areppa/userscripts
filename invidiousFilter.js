@@ -1,40 +1,49 @@
 // ==UserScript==
 // @name         Invidious Filter
-// @version      1.0
+// @version      1.1
 // @description  Hides videos from specific channels and those with specified keywords in the title
 // @author       Areppa
 // @match        https://inv.nadeko.net/feed/popular
-// @grant        none
+// @require      https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js
+// @grant        GM_xmlhttpRequest
 // ==/UserScript==
 
 (function() {
     'use strict';
 
-    // List of channels to hide
-    const channelsToHide = [
-        "Asmongold TV",
-        "Be Smart",
-        "Daily Dose Of Internet",
-        "gameranx",
-        "LastWeekTonight",
-        "MeatCanyon",
-        "Mental Outlaw",
-        "MrBeast",
-        "penguinz0",
-        "PowerfulJRE",
-        "Primitive Technology",
-        "Scott The Woz",
-        "Tom Scott plus",
-        "Vox",
-        "William Osman",
-        "xkcd's What If?",
-    ];
+    const yamlFileUrl = 'https://raw.githubusercontent.com/areppa/userscripts/main/resources/invidious_blocklist.yaml';
 
-    // List of keywords to hide in titles
-    const keywordsToHide = [
-        "#shorts"
+    let channelsToHide = [];
+    let keywordsToHide = [];
 
-    ];
+    // Function to fetch and parse the YAML file
+    function fetchYAML() {
+        GM_xmlhttpRequest({
+            method: "GET",
+            url: yamlFileUrl,
+            onload: function(response) {
+                if (response.status === 200) {
+                    try {
+                        const yamlContent = response.responseText;
+                        const data = jsyaml.load(yamlContent);
+
+                        // Assuming the YAML file has the structure:
+                        // channelsToHide: [ "Channel1", "Channel2" ]
+                        // keywordsToHide: [ "keyword1", "keyword2" ]
+                        channelsToHide = data.channelsToHide || [];
+                        keywordsToHide = data.keywordsToHide || [];
+
+                        // Run the content hiding functions after fetching data
+                        hideContent();
+                    } catch (e) {
+                        console.error("Error parsing YAML:", e);
+                    }
+                } else {
+                    console.error("Failed to fetch YAML file:", response.status);
+                }
+            }
+        });
+    }
 
     // Function to hide videos from specified channels
     function hideChannels() {
@@ -72,6 +81,8 @@
         hideShorts();
     }
 
+    // Fetch the YAML data when the script runs
+    fetchYAML();
     hideContent();
 
     // Optional: Observe changes to the feed and re-run the function
