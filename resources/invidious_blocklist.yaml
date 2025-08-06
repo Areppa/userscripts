@@ -16,6 +16,16 @@ channelsToHide:
   - "William Osman"
   - "xkcd's What If?"
   - "Adam Savage’s Tested"
+  - "jacksepticeye"
+  - "DankPods"
+  - "Internet Historian"
+  - "DougDoug"
+  - "The Critical Drinker"
+  - "hololive ホロライブ - VTuber Group"
+  - "Second Thought"
+  - "vinesauce"
 
 keywordsToHide:
   - "#shorts"
+  - "reacts"
+  - "reacting"

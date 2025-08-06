@@ -61,14 +61,14 @@
     }
 
     // Function to hide videos with specified keywords in titles
-    function hideShorts() {
+    function hideKeywords() {
         const videoCards = document.querySelectorAll('.pure-u-1');
 
         videoCards.forEach(videoCard => {
             const titleElement = videoCard.querySelector('.video-card-row p');
             if (titleElement) {
-                const titleText = titleElement.textContent.trim();
-                if (keywordsToHide.some(keyword => titleText.includes(keyword))) {
+                const titleText = titleElement.textContent.trim().toLowerCase(); // Convert title to lower case
+                if (keywordsToHide.some(keyword => titleText.includes(keyword.toLowerCase()))) { // Convert keyword to lower case
                     videoCard.style.display = 'none';
                 }
             }
@@ -78,7 +78,7 @@
     // Run the functions to hide channels and shorts
     function hideContent() {
         hideChannels();
-        hideShorts();
+        hideKeywords();
     }
 
     // Fetch the YAML data when the script runs
