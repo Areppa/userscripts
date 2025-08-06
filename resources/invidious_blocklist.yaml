@@ -46,6 +46,7 @@ channelsToHide:
 keywordsToHide:
   - "#shorts"
   - "conspirac" # Can have multiple endings
+  - "Daily Linux News - "
   - "fortnite"
   - "react" # Can have multiple endings
   - "roblox"
