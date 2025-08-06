@@ -1,0 +1,20 @@
+channelsToHide:
+  - "Asmongold TV"
+  - "Be Smart"
+  - "Daily Dose Of Internet"
+  - "gameranx"
+  - "LastWeekTonight"
+  - "MeatCanyon"
+  - "Mental Outlaw"
+  - "MrBeast"
+  - "penguinz0"
+  - "PowerfulJRE"
+  - "Primitive Technology"
+  - "Scott The Woz"
+  - "Tom Scott plus"
+  - "Vox"
+  - "William Osman"
+  - "xkcd's What If?"
+
+keywordsToHide:
+  - "#shorts"
