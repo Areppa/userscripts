@@ -10,6 +10,7 @@ channelsToHide:
   - "gameranx"
   - "Garbage Time"
   - "Gigguk"
+  - "GLITCH"
   - "hololive ホロライブ - VTuber Group"
   - "Internet Historian"
   - "jacksepticeye"
@@ -17,6 +18,7 @@ channelsToHide:
   - "Kurtis Conner"
   - "LastWeekTonight"
   - "Let's Game It Out"
+  - "Lofi Girl"
   - "Markiplier"
   - "Marques Brownlee"
   - "MeatCanyon"
@@ -48,6 +50,8 @@ keywordsToHide:
   - "conspirac" # Can have multiple endings
   - "Daily Linux News - "
   - "fortnite"
+  - "patreon"
+  - "Patroncast"
   - "react" # Can have multiple endings
   - "roblox"
   - "tiktok"
