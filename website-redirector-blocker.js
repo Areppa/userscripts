@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Website Redirector/Blocker
-// @version      0.7.1
+// @version      0.7.2
 // @description  Redirects or blocks specific websites
 // @author       Areppa
 // @match        *://*.youtube.com/*
@@ -23,7 +23,7 @@
 
     // === YouTube logic ===
     if (hostname.includes('youtube.com')) {
-        if (pathname !== '/watch') {
+        if (pathname !== '/watch' && pathname !== '/results') {
             const newUrl = url.href.replace(/https?:\/\/(www\.)?youtube\.com/, youtubeRedirectBase);
             window.location.href = newUrl;
         }
