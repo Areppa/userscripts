@@ -7,6 +7,8 @@
 // @match        *://*/*
 // @grant        GM_xmlhttpRequest
 // @connect      raw.githubusercontent.com
+// @updateURL    https://raw.githubusercontent.com/areppa/userscripts/main/website_blocker.js
+// @downloadURL  https://raw.githubusercontent.com/areppa/userscripts/main/website_blocker.js
 // ==/UserScript==
 
 
