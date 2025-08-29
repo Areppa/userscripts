@@ -1,11 +1,13 @@
 // ==UserScript==
 // @name         Invidious Filter
-// @version      1.1
+// @version      1.2
 // @description  Hides videos from specific channels and those with specified keywords in the title
 // @author       Areppa
 // @match        https://inv.nadeko.net/feed/popular
 // @require      https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js
 // @grant        GM_xmlhttpRequest
+// @updateURL    https://raw.githubusercontent.com/areppa/userscripts/main/invidiousFilter.js
+// @downloadURL  https://raw.githubusercontent.com/areppa/userscripts/main/invidiousFilter.js
 // ==/UserScript==
 
 (function() {
