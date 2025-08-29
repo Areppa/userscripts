@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Website Redirector/Blocker
-// @version      0.7.3
+// @version      0.7.4
 // @description  Redirects or blocks specific websites
 // @author       Areppa
 // @match        *://*.youtube.com/*
@@ -8,6 +8,8 @@
 // @match        *://inv.nadeko.net/*
 // @match        *://translate.google.com/*
 // @grant        none
+// @updateURL    https://raw.githubusercontent.com/areppa/userscripts/main/website-redirector-blocker.js
+// @downloadURL  https://raw.githubusercontent.com/areppa/userscripts/main/website-redirector-blocker.js
 // ==/UserScript==
 
 (function() {
