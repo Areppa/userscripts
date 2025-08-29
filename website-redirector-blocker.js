@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Website Redirector/Blocker
-// @version      0.7.2
+// @version      0.7.3
 // @description  Redirects or blocks specific websites
 // @author       Areppa
 // @match        *://*.youtube.com/*
@@ -31,11 +31,13 @@
 
     // === Reddit logic ===
     else if (hostname.includes('reddit.com')) {
-        // Match Reddit post URL pattern: /r/<subreddit>/comments/<post_id>/
+        const isSubreddit = /^\/r\/[^\/]+(\/.*)?$/.test(pathname);
         const isPost = /^\/r\/[^\/]+\/comments\/[^\/]+/.test(pathname);
+        const isUser = /^\/(u|user)\/[^\/]+(\/.*)?$/.test(pathname);
 
-        if (!isPost) {
-            window.close(); // Close the tab if it's not a post
+        // If it's not a subreddit, post, or user page, close the tab
+        if (!isSubreddit && !isPost && !isUser) {
+            window.close();
         }
     }
 
@@ -45,13 +47,11 @@
         window.location.href = deeplBase;
     }
 
-    // === Invidious popular to subs
+    // === Invidious trending to subs
     if (hostname.includes('inv.nadeko.net')) {
-        if (pathname == '/feed/popular') {
-            window.location.href = youtubeRedirectBase;
-        }
         if (pathname == '/feed/trending') {
             window.location.href = youtubeRedirectBase;
         }
     }
+
 })();
