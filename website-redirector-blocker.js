@@ -54,6 +54,9 @@
         if (pathname == '/feed/trending') {
             window.location.href = youtubeRedirectBase;
         }
+        if (pathname == '/feed/popular') {
+            window.location.href = youtubeRedirectBase;
+        }
     }
 
 })();
