@@ -24,12 +24,19 @@
     const pathname = url.pathname;
 
     // === YouTube logic ===
-    if (hostname.includes('youtube.com')) {
-        if (pathname !== '/watch' && pathname !== '/results') {
-            const newUrl = url.href.replace(/https?:\/\/(www\.)?youtube\.com/, youtubeRedirectBase);
-            window.location.href = newUrl;
+    // Ignore if embedded
+    if (window.top === window.self) {
+        if (hostname.includes('youtube.com')) {
+            if (pathname !== '/watch' && pathname !== '/results') {
+                const newUrl = url.href.replace(
+                    /https?:\/\/(www\.)?youtube\.com/,
+                    youtubeRedirectBase
+                );
+                window.location.href = newUrl;
+            }
         }
     }
+
 
     // === Reddit logic ===
     else if (hostname.includes('reddit.com')) {
