@@ -1,11 +1,12 @@
 // ==UserScript==
-// @name         Invidious ↔ YouTube Redirector (Configurable)
-// @version      1.1
+// @name         Invidious Redirector
+// @version      1.1.1
 // @description  Redirect video pages to a configurable target (YouTube or another Invidious instance).
 // @match        *://*/*watch?v=*
 // @grant        none
 // @updateURL    https://raw.githubusercontent.com/areppa/userscripts/main/invidious-redirect.js
 // @downloadURL  https://raw.githubusercontent.com/areppa/userscripts/main/invidious-redirect.js
+// ==/UserScript==
 
 (() => {
     // -------------------------- CONFIGURATION --------------------------
