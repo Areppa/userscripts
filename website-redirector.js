@@ -1,30 +1,37 @@
 // ==UserScript==
 // @name         Website Redirector
-// @version      0.1.0
+// @version      0.2.0
 // @description  Redirects specific websites
 // @author       Areppa
 // @match        *://translate.google.com/*
+// @match        *://www.youtube.com/*
 // @grant        none
 // @updateURL    https://raw.githubusercontent.com/areppa/userscripts/main/website-redirector.js
 // @downloadURL  https://raw.githubusercontent.com/areppa/userscripts/main/website-redirector.js
 // ==/UserScript==
 
-(function() {
+(function () {
     'use strict';
 
-    // == Alternative url ==
-    const translateAlternative = 'https://www.deepl.com';
+    // ---- Configurable targets ----
+    const translateTarget = 'https://www.deepl.com';
+    const invidiousInstance = 'https://inv.nadeko.net';
 
-    // == General variables ==
-    const url = new URL(window.location.href);
-    const hostname = url.hostname;
-    const pathname = url.pathname;
+    // ---- Helper: preserve path & query when redirecting ----
+    const buildUrl = (base, src) => {
+        const u = new URL(src);
+        return `${base}${u.pathname}${u.search}`;
+    };
 
-
-    // === Google Translate to DeepL logic ===
-    if (hostname === 'translate.google.com') {
-        // Redirect to DeepL immediately
-        window.location.href = deeplBase;
+    // ---- Google Translate → DeepL ----
+    if (location.hostname === 'translate.google.com') {
+        location.replace(translateTarget);
+        return;
     }
 
+    // ---- YouTube → Invidious (skip video pages) ----
+    if (location.hostname === 'www.youtube.com' && !location.pathname.includes('/watch')) {
+        location.replace(buildUrl(invidiousInstance, location.href));
+    }
+    
 })();
