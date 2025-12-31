@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Website Redirector
-// @version      0.2.0
+// @version      0.2.1
 // @description  Redirects specific websites
 // @author       Areppa
 // @match        *://translate.google.com/*
@@ -16,6 +16,9 @@
     // ---- Configurable targets ----
     const translateTarget = 'https://www.deepl.com';
     const invidiousInstance = 'https://inv.nadeko.net';
+
+    // Do not run when the page is inside an iframe (i.e., an embed)
+    if (window.self !== window.top) return;
 
     // ---- Helper: preserve path & query when redirecting ----
     const buildUrl = (base, src) => {
@@ -33,5 +36,5 @@
     if (location.hostname === 'www.youtube.com' && !location.pathname.includes('/watch')) {
         location.replace(buildUrl(invidiousInstance, location.href));
     }
-    
+
 })();
