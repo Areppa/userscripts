@@ -1,7 +1,8 @@
 // ==UserScript==
 // @name         Invidious Redirector
-// @version      1.1.2
+// @version      1.2.0
 // @description  Redirect video pages to a configurable target (YouTube or another Invidious instance).
+// @author       Areppa
 // @match        *://*/*watch?v=*
 // @grant        none
 // @updateURL    https://raw.githubusercontent.com/areppa/userscripts/main/invidious-redirect.js
@@ -16,6 +17,9 @@
 
     // Only act on the specified source host
     if (location.host !== SOURCE_HOST) return;
+
+    // Do not run when the page is inside an iframe (i.e., an embed)
+    if (window.self !== window.top) return;
 
     // Verify we are on a video page (/watch?...v=...)
     const url = new URL(location.href);
