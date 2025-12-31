@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Invidious Redirector
-// @version      1.1.1
+// @version      1.1.2
 // @description  Redirect video pages to a configurable target (YouTube or another Invidious instance).
 // @match        *://*/*watch?v=*
 // @grant        none
@@ -11,7 +11,7 @@
 (() => {
     // -------------------------- CONFIGURATION --------------------------
     const SOURCE_HOST = 'inv.nadeko.net';
-    const TARGET_HOST = 'invidious.nerdvpn.de';
+    const TARGET_HOST = 'youtube.com';
     // --------------------------------------------------------------------
 
     // Only act on the specified source host
