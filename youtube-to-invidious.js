@@ -5,8 +5,8 @@
 // @author       Areppa
 // @match        *://*/*
 // @grant        none
-// @updateURL    https://raw.githubusercontent.com/areppa/userscripts/main/invidious-redirect.js
-// @downloadURL  https://raw.githubusercontent.com/areppa/userscripts/main/invidious-redirect.js
+// @updateURL    https://raw.githubusercontent.com/areppa/userscripts/main/youtube-to-invidious.js
+// @downloadURL  https://raw.githubusercontent.com/areppa/userscripts/main/youtube-to-invidious.js
 // ==/UserScript==
 
 (() => {
