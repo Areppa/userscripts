@@ -1,14 +1,14 @@
 // ==UserScript==
-// @name         Website Redirector
-// @version      0.2.2
-// @description  Redirects specific websites
+// @name         Website alternatives
+// @version      0.2.3
+// @description  Redirects specific websites to better alternative
 // @author       Areppa
 // @match        *://translate.google.com/*
 // @match        *://www.youtube.com/*
 // @match        *://inv.nadeko.net/feed/*
 // @grant        none
-// @updateURL    https://raw.githubusercontent.com/areppa/userscripts/main/website-redirector.js
-// @downloadURL  https://raw.githubusercontent.com/areppa/userscripts/main/website-redirector.js
+// @updateURL    https://raw.githubusercontent.com/areppa/userscripts/main/website-alternatives.js
+// @downloadURL  https://raw.githubusercontent.com/areppa/userscripts/main/website-alternatives.js
 // ==/UserScript==
 
 (function () {
