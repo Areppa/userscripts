@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         YouTube -> Invidious (non-video links)
-// @version      1.3
-// @description  Replace youtube.com links with a configurable Invidious instance and add a redirect button on non-video YouTube pages.
+// @version      1.4
+// @description  Replace youtube.com links with a configurable Invidious instance and add a redirect button on non-embedded, non-video YouTube pages.
 // @author       Areppa
 // @match        *://*/*
 // @grant        none
@@ -34,6 +34,15 @@
     return YT_HOSTS.has(location.hostname.toLowerCase());
   }
 
+  function isEmbedded() {
+    try {
+      return window.top !== window.self;
+    } catch {
+      // Treat inaccessible cross-origin frames as embedded.
+      return true;
+    }
+  }
+
   function isVideoPath(url = location) {
     return url.pathname.startsWith("/watch");
   }
@@ -60,6 +69,7 @@
     if (!raw) return;
 
     const converted = convertIfNeeded(raw);
+
     if (converted) {
       a.setAttribute("href", converted);
     }
@@ -74,8 +84,10 @@
   }
 
   function createRedirectButton() {
-    if (!isYouTubePage() || isVideoPath()) return;
+    // Only show the button on a top-level, non-video YouTube page.
+    if (isEmbedded() || !isYouTubePage() || isVideoPath()) return;
     if (document.getElementById(BUTTON_ID)) return;
+    if (!document.body) return;
 
     const button = document.createElement("button");
 
@@ -111,6 +123,7 @@
 
     button.addEventListener("click", () => {
       const converted = convertIfNeeded(location.href);
+
       if (converted) {
         location.href = converted;
       }
@@ -124,7 +137,7 @@
   }
 
   function updateRedirectButton() {
-    if (isYouTubePage() && !isVideoPath()) {
+    if (!isEmbedded() && isYouTubePage() && !isVideoPath()) {
       createRedirectButton();
     } else {
       removeRedirectButton();
