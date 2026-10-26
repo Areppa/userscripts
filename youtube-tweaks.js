@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         YouTube Tweaks
-// @version      1.2
-// @description  Redirect YouTube searches and links to Invidious, flag AI-labeled videos, and hide live chat by default.
+// @version      1.3
+// @description  Redirect YouTube searches and channel pages to Invidious, flag AI-labeled videos, and hide live chat by default.
 // @author       Areppa
 // @match        *://youtube.com/*
 // @match        *://www.youtube.com/*
@@ -23,6 +23,7 @@
     // Enable or disable individual features.
     rewriteLinks: true,
     redirectSearches: true,
+    redirectChannelPages: true,
     showRedirectButton: true,
     highlightAIContent: true,
     hideLiveChat: true,
@@ -75,7 +76,17 @@
     );
   }
 
-  // ── YouTube link and search redirects ────────────────────────────
+  function isYouTubeChannelPage(url) {
+    const path = url.pathname;
+
+    return (
+      /^\/@[^/]+(?:\/|$)/.test(path) ||
+      /^\/(?:channel|c|user)\/[^/]+(?:\/|$)/.test(path) ||
+      (path === "/profile" && url.searchParams.has("user"))
+    );
+  }
+
+  // ── YouTube link and page redirects ───────────────────────────────
 
   function convertYouTubeUrl(href) {
     try {
@@ -98,6 +109,7 @@
         return invidiousUrl.href;
       }
 
+      // Keep channel paths, tabs, query parameters, and fragments intact.
       url.hostname = CONFIG.invidiousHost;
       return url.href;
     } catch {
@@ -116,6 +128,23 @@
 
     location.replace(invidiousUrl);
     return true;
+  }
+
+  function redirectChannelPage() {
+    if (!CONFIG.redirectChannelPages || !isYouTubePage()) return false;
+
+    const currentUrl = new URL(location.href);
+    if (!isYouTubeChannelPage(currentUrl)) return false;
+
+    const invidiousUrl = convertYouTubeUrl(currentUrl.href);
+    if (!invidiousUrl) return false;
+
+    location.replace(invidiousUrl);
+    return true;
+  }
+
+  function redirectSpecialPage() {
+    return redirectSearchPage() || redirectChannelPage();
   }
 
   function rewriteAnchor(anchor) {
@@ -306,7 +335,7 @@
 
   function handleNavigation() {
     setTimeout(() => {
-      if (redirectSearchPage()) return;
+      if (redirectSpecialPage()) return;
 
       updatePageFeatures();
       startHidingChat();
@@ -358,7 +387,7 @@
 
     document.addEventListener("yt-navigate-start", stopHidingChat);
     document.addEventListener("yt-navigate-finish", () => {
-      if (redirectSearchPage()) return;
+      if (redirectSpecialPage()) return;
 
       updatePageFeatures();
       startHidingChat();
@@ -384,8 +413,8 @@
     startHidingChat();
   }
 
-  // Redirect a search immediately on page load, before setting up observers.
-  if (redirectSearchPage()) return;
+  // Redirect searches and channel pages immediately on load.
+  if (redirectSpecialPage()) return;
 
   document.addEventListener(
     "click",
