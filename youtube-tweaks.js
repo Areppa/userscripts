@@ -1,9 +1,11 @@
 // ==UserScript==
 // @name         YouTube Tweaks
-// @version      1.0
-// @description  Rewrite non-video YouTube links to Invidious, flag AI-labeled videos, and hide live chat by default.
+// @version      1.1
+// @description  Rewrite YouTube links to Invidious, flag AI-labeled videos, and hide live chat by default.
 // @author       Areppa
-// @match        *://*/*
+// @match        *://youtube.com/*
+// @match        *://www.youtube.com/*
+// @match        *://m.youtube.com/*
 // @run-at       document-start
 // @grant        none
 // @updateURL    https://raw.githubusercontent.com/areppa/userscripts/main/youtube-tweaks.js
@@ -13,29 +15,53 @@
 (() => {
   "use strict";
 
-  const INVIDIOUS_HOST = "inv.nadeko.net";
-  const INVIDIOUS_HOSTS = new Set(["inv.nadeko.net"]);
-  const YT_HOSTS = new Set([
-    "youtube.com",
-    "www.youtube.com",
-    "m.youtube.com",
-  ]);
+  // ── Settings: edit these values to customize the script ───────────
+  const CONFIG = {
+    // YouTube links will be redirected to this Invidious instance.
+    invidiousHost: "inv.nadeko.net",
+
+    // Domains recognized as YouTube.
+    youtubeHosts: [
+      "youtube.com",
+      "www.youtube.com",
+      "m.youtube.com",
+    ],
+
+    // Enable or disable individual features.
+    rewriteLinks: true,
+    showRedirectButton: true,
+    highlightAIContent: true,
+    hideLiveChat: true,
+
+    // Redirect button.
+    buttonText: "Open in Invidious",
+    buttonTitle: "Open this YouTube page in Invidious",
+
+    // AI-content highlighting.
+    aiBadgeSelector: 'badge-shape[aria-label="AI: Content was made with AI"]',
+    aiBackgroundColor: "#8B0000",
+    cinematicsSelector: "#cinematics, .cinematics, .ytp-cinematics",
+
+    // Live-chat polling interval, in milliseconds.
+    chatPollInterval: 500,
+  };
+  // ─────────────────────────────────────────────────────────────────
 
   const BUTTON_ID = "youtube-to-invidious-button";
   const AI_STYLE_ID = "yt-ai-color-style";
-  const AI_COLOR = "#8B0000";
-  const AI_BADGE_SELECTOR =
-    'badge-shape[aria-label="AI: Content was made with AI"]';
-  const CINEMATICS_SELECTOR = "#cinematics, .cinematics, .ytp-cinematics";
-
-  // Don't rewrite links or add features on an Invidious instance.
-  if (INVIDIOUS_HOSTS.has(location.hostname.toLowerCase())) return;
+  const INVIDIOUS_HOSTS = new Set([CONFIG.invidiousHost.toLowerCase()]);
+  const YOUTUBE_HOSTS = new Set(
+    CONFIG.youtubeHosts.map((host) => host.toLowerCase())
+  );
 
   let chatActive = false;
   let chatTimer = null;
 
+  // Don't run on the configured Invidious instance.
+  if (INVIDIOUS_HOSTS.has(location.hostname.toLowerCase())) return;
+
   function isYouTubePage() {
-    return YT_HOSTS.has(location.hostname.toLowerCase());
+    return YOUTUBE_HOSTS.has(location.hostname.toLowerCase());
   }
 
   function isEmbedded() {
@@ -46,20 +72,20 @@
     }
   }
 
-  function isVideoPath(url = location) {
+  function isVideoPage(url = location) {
     return url.pathname === "/watch";
   }
 
-  // --- YouTube link rewriting ---
+  // ── YouTube link rewriting ────────────────────────────────────────
 
-  function convertIfNeeded(href) {
+  function convertYouTubeUrl(href) {
     try {
       const url = new URL(href, location.href);
 
-      if (!YT_HOSTS.has(url.hostname.toLowerCase())) return null;
-      if (isVideoPath(url)) return null;
+      if (!YOUTUBE_HOSTS.has(url.hostname.toLowerCase())) return null;
+      if (isVideoPage(url)) return null;
 
-      url.hostname = INVIDIOUS_HOST;
+      url.hostname = CONFIG.invidiousHost;
       return url.href;
     } catch {
       return null;
@@ -67,11 +93,11 @@
   }
 
   function rewriteAnchor(anchor) {
-    const raw = anchor.getAttribute("href");
-    if (!raw) return;
+    const href = anchor.getAttribute("href");
+    if (!href) return;
 
-    const converted = convertIfNeeded(raw);
-    if (converted) anchor.setAttribute("href", converted);
+    const convertedUrl = convertYouTubeUrl(href);
+    if (convertedUrl) anchor.setAttribute("href", convertedUrl);
   }
 
   function scanLinks(root = document) {
@@ -81,13 +107,14 @@
     root.querySelectorAll("a[href]").forEach(rewriteAnchor);
   }
 
-  // --- Floating Invidious redirect button ---
+  // ── Floating redirect button ──────────────────────────────────────
 
   function createRedirectButton() {
     if (
+      !CONFIG.showRedirectButton ||
       isEmbedded() ||
       !isYouTubePage() ||
-      isVideoPath() ||
+      isVideoPage() ||
       document.getElementById(BUTTON_ID) ||
       !document.body
     ) {
@@ -97,8 +124,8 @@
     const button = document.createElement("button");
     button.id = BUTTON_ID;
     button.type = "button";
-    button.textContent = "Open in Invidious";
-    button.title = "Open this YouTube page in Invidious";
+    button.textContent = CONFIG.buttonText;
+    button.title = CONFIG.buttonTitle;
 
     Object.assign(button.style, {
       position: "fixed",
@@ -120,26 +147,34 @@
     button.addEventListener("mouseenter", () => {
       button.style.background = "#cc0000";
     });
+
     button.addEventListener("mouseleave", () => {
       button.style.background = "#ff0000";
     });
+
     button.addEventListener("click", () => {
-      const converted = convertIfNeeded(location.href);
-      if (converted) location.href = converted;
+      const convertedUrl = convertYouTubeUrl(location.href);
+      if (convertedUrl) location.href = convertedUrl;
     });
 
     document.body.appendChild(button);
   }
 
   function updateRedirectButton() {
-    if (!isEmbedded() && isYouTubePage() && !isVideoPath()) {
+    const shouldShow =
+      CONFIG.showRedirectButton &&
+      !isEmbedded() &&
+      isYouTubePage() &&
+      !isVideoPage();
+
+    if (shouldShow) {
       createRedirectButton();
     } else {
       document.getElementById(BUTTON_ID)?.remove();
     }
   }
 
-  // --- AI-content page styling ---
+  // ── AI-content highlighting ───────────────────────────────────────
 
   function applyAIStyles() {
     if (document.getElementById(AI_STYLE_ID)) return;
@@ -148,10 +183,10 @@
     style.id = AI_STYLE_ID;
     style.textContent = `
       html, body, ytd-app, #content.ytd-app {
-        background-color: ${AI_COLOR} !important;
+        background-color: ${CONFIG.aiBackgroundColor} !important;
       }
 
-      ${CINEMATICS_SELECTOR} {
+      ${CONFIG.cinematicsSelector} {
         display: none !important;
         opacity: 0 !important;
         background: none !important;
@@ -161,17 +196,20 @@
     (document.head || document.documentElement)?.appendChild(style);
   }
 
-  function checkAIContent() {
-    if (!isYouTubePage()) return;
+  function updateAIStyles() {
+    if (!CONFIG.highlightAIContent || !isYouTubePage()) {
+      document.getElementById(AI_STYLE_ID)?.remove();
+      return;
+    }
 
-    if (document.querySelector(AI_BADGE_SELECTOR)) {
+    if (document.querySelector(CONFIG.aiBadgeSelector)) {
       applyAIStyles();
     } else {
       document.getElementById(AI_STYLE_ID)?.remove();
     }
   }
 
-  // --- Hide live chat on video pages ---
+  // ── Hide live chat on video pages ─────────────────────────────────
 
   function findChatCloseButton() {
     const iframe = document.querySelector("iframe#chatframe");
@@ -198,6 +236,7 @@
 
   function stopHidingChat() {
     chatActive = false;
+
     if (chatTimer) {
       clearTimeout(chatTimer);
       chatTimer = null;
@@ -208,13 +247,14 @@
     if (!chatActive) return;
 
     const closeButton = findChatCloseButton();
+
     if (closeButton) {
       closeButton.click();
       stopHidingChat();
       return;
     }
 
-    chatTimer = setTimeout(hideChat, 500);
+    chatTimer = setTimeout(hideChat, CONFIG.chatPollInterval);
   }
 
   function startHidingChat() {
@@ -224,18 +264,25 @@
       location.pathname === "/watch" ||
       location.pathname.startsWith("/clip/");
 
-    if (!isYouTubePage() || !isWatchOrClip) return;
+    if (!CONFIG.hideLiveChat || !isYouTubePage() || !isWatchOrClip) return;
 
     chatActive = true;
     hideChat();
   }
 
-  // --- Shared page setup and YouTube single-page navigation ---
+  // ── Page updates and YouTube single-page navigation ────────────────
 
-  function handlePageChanges() {
-    scanLinks();
+  function updatePageFeatures() {
+    if (CONFIG.rewriteLinks) scanLinks();
     updateRedirectButton();
-    checkAIContent();
+    updateAIStyles();
+  }
+
+  function handleNavigation() {
+    setTimeout(() => {
+      updatePageFeatures();
+      startHidingChat();
+    }, 100);
   }
 
   function initialize() {
@@ -249,14 +296,16 @@
         if (mutation.type === "childList") {
           pageStructureChanged = true;
 
-          mutation.addedNodes.forEach((node) => {
-            if (node.nodeType !== Node.ELEMENT_NODE) return;
-            scanLinks(node);
-          });
+          if (CONFIG.rewriteLinks) {
+            mutation.addedNodes.forEach((node) => {
+              if (node.nodeType === Node.ELEMENT_NODE) scanLinks(node);
+            });
+          }
         } else if (
+          CONFIG.rewriteLinks &&
           mutation.type === "attributes" &&
           mutation.attributeName === "href" &&
-          mutation.target.matches?.("a[href]")
+          mutation.target.matches?.("a")
         ) {
           rewriteAnchor(mutation.target);
         }
@@ -264,7 +313,7 @@
 
       if (pageStructureChanged) {
         updateRedirectButton();
-        checkAIContent();
+        updateAIStyles();
       }
     });
 
@@ -275,53 +324,51 @@
       attributeFilter: ["href"],
     });
 
-    handlePageChanges();
+    updatePageFeatures();
 
-    if (isYouTubePage()) {
-      document.addEventListener("yt-navigate-start", stopHidingChat);
-      document.addEventListener("yt-navigate-finish", () => {
-        handlePageChanges();
-        startHidingChat();
-      });
+    if (!isYouTubePage()) return;
 
-      const originalPushState = history.pushState;
-      const originalReplaceState = history.replaceState;
-
-      function handleNavigation() {
-        setTimeout(() => {
-          handlePageChanges();
-          startHidingChat();
-        }, 100);
-      }
-
-      history.pushState = function (...args) {
-        const result = originalPushState.apply(this, args);
-        handleNavigation();
-        return result;
-      };
-
-      history.replaceState = function (...args) {
-        const result = originalReplaceState.apply(this, args);
-        handleNavigation();
-        return result;
-      };
-
-      window.addEventListener("popstate", handleNavigation);
-
-      document.addEventListener("DOMContentLoaded", startHidingChat);
+    document.addEventListener("yt-navigate-start", stopHidingChat);
+    document.addEventListener("yt-navigate-finish", () => {
+      updatePageFeatures();
       startHidingChat();
-    }
+    });
+
+    const originalPushState = history.pushState;
+    const originalReplaceState = history.replaceState;
+
+    history.pushState = function (...args) {
+      const result = originalPushState.apply(this, args);
+      handleNavigation();
+      return result;
+    };
+
+    history.replaceState = function (...args) {
+      const result = originalReplaceState.apply(this, args);
+      handleNavigation();
+      return result;
+    };
+
+    window.addEventListener("popstate", handleNavigation);
+    document.addEventListener("DOMContentLoaded", startHidingChat);
+    startHidingChat();
   }
 
-  document.addEventListener("click", (event) => {
-    const anchor = event.target.closest?.("a[href]");
-    if (!anchor) return;
+  document.addEventListener(
+    "click",
+    (event) => {
+      if (!CONFIG.rewriteLinks) return;
 
-    const converted = convertIfNeeded(anchor.getAttribute("href"));
-    if (converted && anchor.href !== converted) {
-      anchor.href = converted;
-    }
-  }, true);
+      const anchor = event.target.closest?.("a[href]");
+      if (!anchor) return;
+
+      const convertedUrl = convertYouTubeUrl(anchor.getAttribute("href"));
+      if (convertedUrl && anchor.href !== convertedUrl) {
+        anchor.href = convertedUrl;
+      }
+    },
+    true
+  );
 
   if (document.documentElement) {
     initialize();
