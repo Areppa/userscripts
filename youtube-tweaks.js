@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         YouTube Tweaks
-// @version      1.1
-// @description  Rewrite YouTube links to Invidious, flag AI-labeled videos, and hide live chat by default.
+// @version      1.2
+// @description  Redirect YouTube searches and links to Invidious, flag AI-labeled videos, and hide live chat by default.
 // @author       Areppa
 // @match        *://youtube.com/*
 // @match        *://www.youtube.com/*
@@ -17,18 +17,12 @@
 
   // ── Settings: edit these values to customize the script ───────────
   const CONFIG = {
-    // YouTube links will be redirected to this Invidious instance.
+    // YouTube links and searches will be sent to this Invidious instance.
     invidiousHost: "inv.nadeko.net",
-
-    // Domains recognized as YouTube.
-    youtubeHosts: [
-      "youtube.com",
-      "www.youtube.com",
-      "m.youtube.com",
-    ],
 
     // Enable or disable individual features.
     rewriteLinks: true,
+    redirectSearches: true,
     showRedirectButton: true,
     highlightAIContent: true,
     hideLiveChat: true,
@@ -42,23 +36,21 @@
     aiBackgroundColor: "#8B0000",
     cinematicsSelector: "#cinematics, .cinematics, .ytp-cinematics",
 
-    // Live-chat polling interval, in milliseconds.
+    // Time between attempts to find the live-chat close button, in milliseconds.
     chatPollInterval: 500,
   };
   // ─────────────────────────────────────────────────────────────────
 
   const BUTTON_ID = "youtube-to-invidious-button";
   const AI_STYLE_ID = "yt-ai-color-style";
-  const INVIDIOUS_HOSTS = new Set([CONFIG.invidiousHost.toLowerCase()]);
-  const YOUTUBE_HOSTS = new Set(
-    CONFIG.youtubeHosts.map((host) => host.toLowerCase())
-  );
+  const YOUTUBE_HOSTS = new Set([
+    "youtube.com",
+    "www.youtube.com",
+    "m.youtube.com",
+  ]);
 
   let chatActive = false;
   let chatTimer = null;
-
-  // Don't run on the configured Invidious instance.
-  if (INVIDIOUS_HOSTS.has(location.hostname.toLowerCase())) return;
 
   function isYouTubePage() {
     return YOUTUBE_HOSTS.has(location.hostname.toLowerCase());
@@ -72,11 +64,18 @@
     }
   }
 
-  function isVideoPage(url = location) {
+  function isVideoPage(url) {
     return url.pathname === "/watch";
   }
 
-  // ── YouTube link rewriting ────────────────────────────────────────
+  function isYouTubeSearch(url) {
+    return (
+      url.pathname === "/results" &&
+      url.searchParams.has("search_query")
+    );
+  }
+
+  // ── YouTube link and search redirects ────────────────────────────
 
   function convertYouTubeUrl(href) {
     try {
@@ -85,11 +84,38 @@
       if (!YOUTUBE_HOSTS.has(url.hostname.toLowerCase())) return null;
       if (isVideoPage(url)) return null;
 
+      if (isYouTubeSearch(url)) {
+        if (!CONFIG.redirectSearches) return null;
+
+        const invidiousUrl = new URL(
+          `https://${CONFIG.invidiousHost}/search`
+        );
+        invidiousUrl.searchParams.set(
+          "q",
+          url.searchParams.get("search_query") || ""
+        );
+
+        return invidiousUrl.href;
+      }
+
       url.hostname = CONFIG.invidiousHost;
       return url.href;
     } catch {
       return null;
     }
+  }
+
+  function redirectSearchPage() {
+    if (!CONFIG.redirectSearches || !isYouTubePage()) return false;
+
+    const currentUrl = new URL(location.href);
+    if (!isYouTubeSearch(currentUrl)) return false;
+
+    const invidiousUrl = convertYouTubeUrl(currentUrl.href);
+    if (!invidiousUrl) return false;
+
+    location.replace(invidiousUrl);
+    return true;
   }
 
   function rewriteAnchor(anchor) {
@@ -114,7 +140,7 @@
       !CONFIG.showRedirectButton ||
       isEmbedded() ||
       !isYouTubePage() ||
-      isVideoPage() ||
+      isVideoPage(new URL(location.href)) ||
       document.getElementById(BUTTON_ID) ||
       !document.body
     ) {
@@ -165,7 +191,7 @@
       CONFIG.showRedirectButton &&
       !isEmbedded() &&
       isYouTubePage() &&
-      !isVideoPage();
+      !isVideoPage(new URL(location.href));
 
     if (shouldShow) {
       createRedirectButton();
@@ -280,6 +306,8 @@
 
   function handleNavigation() {
     setTimeout(() => {
+      if (redirectSearchPage()) return;
+
       updatePageFeatures();
       startHidingChat();
     }, 100);
@@ -330,6 +358,8 @@
 
     document.addEventListener("yt-navigate-start", stopHidingChat);
     document.addEventListener("yt-navigate-finish", () => {
+      if (redirectSearchPage()) return;
+
       updatePageFeatures();
       startHidingChat();
     });
@@ -353,6 +383,9 @@
     document.addEventListener("DOMContentLoaded", startHidingChat);
     startHidingChat();
   }
+
+  // Redirect a search immediately on page load, before setting up observers.
+  if (redirectSearchPage()) return;
 
   document.addEventListener(
     "click",
